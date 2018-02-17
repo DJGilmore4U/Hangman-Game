@@ -1,84 +1,176 @@
+var wins = 0;
+var losses = 0;
 
-  var alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
-        'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
-        't', 'u', 'v', 'w', 'x', 'y', 'z'];
-  
-  var wordblanks ;        // Word-Blanks
-  var userGuesses ;       // User Guesses
-  var guesses = [ ];      // Stored User Guesses
-  var guessesLeft ;       // Guesses Remaining
-  var winCounter ;        // Count of wins
+var maxErrors = 10;
 
-  // Get elements
-  var showLives = document.getElementById("guessesLeft");
+var wordDisplayLettersElement = document.getElementById("word-display-letters");
+var guessedLettersElement = document.getElementById("guessed-letters");
+var errorCountElement = document.getElementById("error-count");
+var winCountElement = document.getElementById("win-count");
+var lossCountElement = document.getElementById("loss-count");
 
+var blinkElements = document.getElementsByClassName("blinking");
+var alertLineElements = document.getElementsByClassName("alert-line");
 
-  // create alphabet ul
-  var buttons = function () {
-    myButtons = document.getElementById('buttons');
-    letters = document.createElement('ul');
+var validGuesses = [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' ];
 
-    for (var i = 0; i < alphabet.length; i++) {
-      letters.id = 'alphabet';
-      list = document.createElement('li');
-      list.id = 'letter';
-      list.innerHTML = alphabet[i];
-      check();
-      myButtons.appendChild(letters);
-      letters.appendChild(list);
-    }
-  }
+var pressAnyKeyToStart = [
+	"Press Any Key to Start"
+];
+var pressAnyKeyToReset = [
+	"Press Any Key to Reset the Game"
+];
 
-   result = function () {
-    wordHolder = document.getElementById('hold');
-    correct = document.createElement('ul');
+var youWin = [
+	"WINNER WINNER CHICKEN DINNER",
+];
+var youLose = [
+	"YOU LOSE",
+];
+var emptyAlert = [
+	"                                           "
+];
 
-    for (var i = 0; i < space.length; i++) {
-      correct.setAttribute('id', 'my-word');
-      guess = document.createElement('li');
-      guess.setAttribute('class', 'guess');
-      if (word[i] === "-") {
-        guess.innerHTML = "-";
-        space = 1;
-      } else {
-        guess.innerHTML = "_";
-      }
+var game = new Hangman();
 
-      guesses.push(guess);
-      wordHolder.appendChild(correct);
-      correct.appendChild(guess);
-    }
-  }
+document.onkeyup = function(event) {
+	var userGuess = event.key;
 
+	if (!game.gameOver) {
+		if (validGuesses.includes(userGuess) && !game.guessedLetters.includes(userGuess)) {
+			game.checkGuess(userGuess);
+		}
+	} else {
+		game = new Hangman();
+		game.updatePageData();
+	}
+}
 
-  // OnClick Function
-   check = function () {
-    list.onclick = function () {
-      var geuss = (this.innerHTML);
-      this.setAttribute("class", "active");
-      this.onclick = null;
-      for (var i = 0; i < word.length; i++) {
-        if (word[i] === userGuess) {
-          guesses[i].innerHTML = guess;
-          counter += 1;
-        } 
-      }
-      var j = (word.indexOf(guess));
-      if (j === -1) {
-        guessesLeft -= 1;
-      } else {
-      }
-    }
-  }
+window.setInterval(function() {
+	if (blinkElements.length > 0) {
+		if (game.guessedLetters.length === 0 || game.gameOver) {
+			if (blinkElements[0].style.opacity === "1") {
+				for (var i = 0; i < blinkElements.length; i++) {
+					blinkElements[i].style.opacity = "0";
+				}
+			} else {
+				for (var i = 0; i < blinkElements.length; i++) {
+					blinkElements[i].style.opacity = "1";
+				}
+			}
+		} else {
+			for (var i = 0; i < blinkElements.length; i++) {
+				blinkElements[i].style.opacity = "0";
+			}
+		}
+	}
+}, 750);
 
-    // Play
-  play = function () {
-    guesses = [ ];
-    lives = 10;
-    counter = 0;
-    space = 0;
-  }
+function Hangman() {
+	this.wordList = [
+		"djturner",
+		"jacobjanak",
+		"ericjohnson",
+		"kevingriffith",
+		"luisfernandocely",
+		"brianclauzel",
+		"beauburrier",
+		"stevenlandgraf",
+		"robertoperez",
+		"shanedrosi",
+		"tomharris",
+		"emmanem",
+		"adamgarling",
+		"caylenepicache",
+		"dantroeber",
+		"radhikaiyer",
+		"hninhaymar",
+		"justinoconnell"
+	]
 
-  play();
+	this.word = this.wordList[Math.floor(Math.random() * this.wordList.length)];
+	this.guessedLetters = [];
+	this.errors = 0;
+	this.visibleLetters = [];
+	this.gameOver = false;
+	this.alertLines = emptyAlert;
+	for (var i = 0; i < this.word.length; i++) {
+		this.visibleLetters[i] = (false);
+	}
+}
 
-  // reset AHHHH THIS IS SO FRUSTERATING! 
+Hangman.prototype.checkGuess = function(char) {
+	this.guessedLetters.push(char);
+
+	var isInWord = false;
+	for (var i = 0; i < this.word.length; i++) {
+		if (this.word.charAt(i) === char) {
+			isInWord = true;
+			this.visibleLetters[i] = true;
+		}
+	}
+	if (!isInWord) {
+		this.errors++;
+	}
+
+	if (this.errors >= maxErrors) {
+		losses++;
+		this.alertLines = youLose;
+		this.gameOver = true;
+	}
+
+	if (!this.visibleLetters.includes(false)) {
+		wins++;
+		this.alertLines = youWin;
+		this.gameOver = true;
+	}
+
+	game.updatePageData();
+};
+
+Hangman.prototype.updatePageData = function() {
+	var tempString = "";
+	for (var i = 0; i < this.visibleLetters.length; i++) {
+		tempString += ((this.visibleLetters[i] || this.gameOver) ? this.word.charAt(i).toUpperCase() : "_");
+		if (i < (this.visibleLetters.length - 1)) tempString += " ";
+	}
+	wordDisplayLettersElement.textContent = tempString;
+
+	tempString = "";
+	for (var i = 0; i < this.guessedLetters.length; i++) {
+		tempString += (this.guessedLetters[i].toUpperCase());
+		if (i < (this.guessedLetters.length - 1)) tempString += " ";
+	}
+	for (var i = tempString.length; i < 51; i++) {
+		tempString += " ";
+	}
+	guessedLettersElement.textContent = tempString;
+
+	tempString = this.errors + " / " + maxErrors;
+	for (var i = tempString.length; i < 32; i++) {
+		tempString += " ";
+	}
+	errorCountElement.textContent = tempString;
+
+	tempString = wins + "";
+	for (var i = tempString.length; i < 45; i++) {
+		tempString += " ";
+	}
+	winCountElement.textContent = tempString;
+
+	tempString = losses + "";
+	for (var i = tempString.length; i < 43; i++) {
+		tempString += " ";
+	}
+	lossCountElement.textContent = tempString;
+
+	for (var i = 0; i < blinkElements.length; i++) {
+		blinkElements[i].textContent = (this.gameOver ? pressAnyKeyToReset[i] : pressAnyKeyToStart[i]);
+	}
+
+	for (var i = 0; i < alertLineElements.length; i++) {
+		alertLineElements[i].textContent = (this.alertLines[i]);
+	}
+}
+
+game.updatePageData();
