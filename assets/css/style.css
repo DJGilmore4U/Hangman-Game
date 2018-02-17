@@ -19,6 +19,7 @@ body {
 #main-content {
 	width: 960px;
 	margin: 0px auto 0px auto;
+	height: 760px;
 }
 
 .panel {
@@ -36,5 +37,5 @@ body {
 
 #general-display {
 	text-align: center;
-	font-size: 16px;
+	font-size: 15px;
 }
